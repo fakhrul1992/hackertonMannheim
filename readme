@@ -1,0 +1,11 @@
+docker network create my_network
+
+// cd api server
+// go mod init mockapi
+docker build -t mockapi .
+docker run --network=my_network --name=mockapi -p 8081:8081 mockapi
+
+// cd website folder
+// go mod init mywebsite
+docker build -t mywebsite .
+docker run --network=my_network -p 8080:8080 mywebsite
