@@ -43,6 +43,14 @@
         }
         .message.api {
             background-color: #f0f0f0;
+            position: relative;
+        }
+        .typing-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-style: italic;
+            color: #888;
         }
         input {
             width: 80%;
@@ -70,6 +78,7 @@
         <div class="messages">
             <div v-for="msg in messages" :class="['message', msg.type]">
                 {{ msg.text }}
+                <div v-if="msg.type === 'api'" class="typing-indicator" v-if="msg.typing">...</div>
             </div>
         </div>
         <input type="text" v-model="currentMessage" @keyup.enter="sendMessage" placeholder="Type a message" required>
@@ -99,7 +108,11 @@
                             body: JSON.stringify({ message: this.currentMessage })
                         });
                         if (!res.ok) throw new Error('Failed to send message');
-                        
+
+                        // Simulate a delay in receiving the response
+                        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+                        await delay(1000); // 1 second delay
+
                         const apiResponse = await res.json();
                         this.messages.push({ text: apiResponse.data, type: 'api' });
 
