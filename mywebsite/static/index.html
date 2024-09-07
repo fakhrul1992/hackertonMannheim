@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+        .messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .message.user {
+            background-color: #e1f5fe;
+            text-align: right;
+        }
+        .message.api {
+            background-color: #f0f0f0;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Chat Interface</h1>
+        <div class="messages">
+            <div v-for="msg in messages" :class="['message', msg.type]">
+                {{ msg.text }}
+            </div>
+        </div>
+        <input type="text" v-model="currentMessage" @keyup.enter="sendMessage" placeholder="Type a message" required>
+        <button @click="sendMessage">Send</button>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                currentMessage: '',
+                messages: []
+            },
+            methods: {
+                async sendMessage() {
+                    if (this.currentMessage.trim() === '') return;
+
+                    // Add user message to the chat
+                    this.messages.push({ text: this.currentMessage, type: 'user' });
+
+                    try {
+                        const res = await fetch('/api/send', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ message: this.currentMessage })
+                        });
+                        if (!res.ok) throw new Error('Failed to send message');
+                        
+                        const apiResponse = await res.json();
+                        this.messages.push({ text: apiResponse.data, type: 'api' });
+
+                    } catch (error) {
+                        console.error(error);
+                        this.messages.push({ text: 'Error communicating with the API', type: 'api' });
+                    }
+
+                    // Clear the input field
+                    this.currentMessage = '';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
